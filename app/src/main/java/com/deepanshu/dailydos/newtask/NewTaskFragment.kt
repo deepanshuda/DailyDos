@@ -26,6 +26,8 @@ class NewTaskFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
 
+        val arguments = NewTaskFragmentArgs.fromBundle(arguments!!)
+
         val binding: FragmentNewTaskBinding = DataBindingUtil.inflate(
             inflater, R.layout.fragment_new_task, container, false)
         binding.saveTask.setOnClickListener {
@@ -39,6 +41,7 @@ class NewTaskFragment : Fragment() {
         val newTaskViewModel = ViewModelProviders.of(this, viewModelFactory)
             .get(NewTaskViewModel::class.java)
         binding.newTaskViewModel = newTaskViewModel
+        binding.lifecycleOwner = viewLifecycleOwner
 
         newTaskViewModel.navigateToDailyTasks.observe(viewLifecycleOwner, Observer {
             if (it == true) {
@@ -48,6 +51,10 @@ class NewTaskFragment : Fragment() {
                 inputMethodManager.hideSoftInputFromWindow(binding.saveTask.windowToken, 0)
             }
         })
+
+        if (-1L != arguments.taskId) {
+            newTaskViewModel.getTask(arguments.taskId)
+        }
 
         return binding.root
     }

@@ -10,6 +10,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 
 import com.deepanshu.dailydos.R
 import com.deepanshu.dailydos.database.DailyTask
@@ -20,7 +21,7 @@ import com.deepanshu.dailydos.databinding.FragmentDailyTaskBinding
 /**
  * A simple [Fragment] subclass.
  */
-class DailyTaskFragment : Fragment(), TaskAdapter.OnTaskStatusListener {
+class DailyTaskFragment : Fragment() {
 
 
     var dataSource: TaskDatabaseDao? = null
@@ -37,7 +38,7 @@ class DailyTaskFragment : Fragment(), TaskAdapter.OnTaskStatusListener {
 
         binding.newTask.setOnClickListener {
             it.findNavController()
-                .navigate(DailyTaskFragmentDirections.actionDailyTaskFragmentToNewTaskFragment())
+                .navigate(DailyTaskFragmentDirections.actionDailyTaskFragmentToNewTaskFragment(-1L))
         }
         val application = requireNotNull(this.activity).application
         dataSource = TaskDatabase.getInstance(application).taskDatabaseDao
@@ -45,20 +46,24 @@ class DailyTaskFragment : Fragment(), TaskAdapter.OnTaskStatusListener {
         taskViewModel = ViewModelProviders.of(this, viewModelFactory)
             .get(DailyTaskViewModel::class.java)
 
-        val adapter = TaskAdapter()
+        val adapter = TaskAdapter(onTaskStatusClickListener = {
+            changeTaskStatus(it)
+        }) {
+            this.findNavController()
+                .navigate(DailyTaskFragmentDirections.actionDailyTaskFragmentToNewTaskFragment(it))
+        }
         taskViewModel!!.tasks.observe(viewLifecycleOwner, Observer {
             it?.let {
                 adapter.tasks = it
             }
         })
         binding.tasksList.adapter = adapter
-        adapter.setOnTaskStatusListener(this)
+//        adapter.setOnTaskStatusListener(this)
 
         return binding.root
     }
 
-    override fun onTaskChecked(task: DailyTask) {
-//        dataSource!!.update(task)
+    fun changeTaskStatus(task: DailyTask) {
         taskViewModel!!.updateTask(task)
     }
 

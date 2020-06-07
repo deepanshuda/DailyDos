@@ -9,17 +9,18 @@ import com.deepanshu.dailydos.R
 import com.deepanshu.dailydos.database.DailyTask
 import com.deepanshu.dailydos.databinding.ListTaskItemBinding
 
-class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
+class TaskAdapter(val onTaskStatusClickListener: (task: DailyTask) -> Unit,
+                    val onTaskClickListener: (Long) -> Unit): RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
 
-    interface OnTaskStatusListener {
-        fun onTaskChecked(task: DailyTask)
-    }
-
-    private lateinit var callback: OnTaskStatusListener
-
-    fun setOnTaskStatusListener(callback: OnTaskStatusListener) {
-        this.callback = callback
-    }
+//    interface OnTaskStatusListener {
+//        fun onTaskChecked(task: DailyTask)
+//    }
+//
+//    private lateinit var callback: OnTaskStatusListener
+//
+//    fun setOnTaskStatusListener(callback: OnTaskStatusListener) {
+//        this.callback = callback
+//    }
 
     var tasks = listOf<DailyTask>()
     set(value) {
@@ -32,12 +33,7 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val task = tasks[position]
 
-        holder.taskTitle.text = task.taskTitle
-        holder.taskStatus.isChecked = task.isComplete
-        holder.taskStatus.setOnClickListener {
-            task.isComplete =!task.isComplete
-            callback.onTaskChecked(task)
-        }
+        holder.bind(task, onTaskStatusClickListener, onTaskClickListener)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -49,5 +45,20 @@ class TaskAdapter: RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
     class ViewHolder(binding: ListTaskItemBinding): RecyclerView.ViewHolder(binding.root) {
         val taskTitle: TextView = binding.taskTitle
         val taskStatus: RadioButton = binding.taskStatus
+
+        fun bind(task: DailyTask, onTaskStatusClick: (task: DailyTask) -> Unit,
+                    onTaskClick: (Long) -> Unit) {
+            taskTitle.text = task.taskTitle
+            taskStatus.isChecked = task.isComplete
+            taskStatus.setOnClickListener {
+                task.isComplete = !task.isComplete
+                //            callback.onTaskChecked(task)
+                onTaskStatusClick(task)
+            }
+
+            itemView.setOnClickListener {
+                onTaskClick(task.taskId)
+            }
+        }
     }
 }
